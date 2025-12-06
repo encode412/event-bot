@@ -39,8 +39,8 @@ COPY . .
 # Create directories for data persistence
 RUN mkdir -p .wwebjs_auth event_flyers
 
-# Expose port (if needed for health checks)
-EXPOSE 3000
+# Expose port - REQUIRED for Render
+EXPOSE 10000
 
 # Start the bot
 CMD ["npm", "start"]
