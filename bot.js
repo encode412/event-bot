@@ -2,6 +2,30 @@ const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
 const path = require("path");
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'online',
+    bot: 'WhatsApp Event Monitor',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    uptime: process.uptime()
+  });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Health check server running on port ${PORT}`);
+  console.log(`   Access at: http://0.0.0.0:${PORT}`);
+});
 
 class WhatsAppEventBot {
   constructor(emailConfig, whatsappGroupId = null) {
