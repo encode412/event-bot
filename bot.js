@@ -252,62 +252,51 @@ class WhatsAppEventBot {
     scheduleNextCleanup();
   }
 
-  async handleMessage(message) {
-    try {
-      const chat = await message.getChat();
-      if (!chat.isGroup) return;
+ async handleMessage(message) {
+  try {
+    const chat = await message.getChat();
+    if (!chat.isGroup) return;
 
-      const groupName = chat.name;
+    const groupName = chat.name;
+    const isBlacklisted = this.blacklistedGroups.some((blacklisted) =>
+      groupName.toLowerCase().includes(blacklisted.toLowerCase())
+    );
 
-      const isBlacklisted = this.blacklistedGroups.some((blacklisted) =>
-        groupName.toLowerCase().includes(blacklisted.toLowerCase())
-      );
-
-      if (isBlacklisted) {
-        console.log(`🚫 Ignoring blacklisted group: ${groupName}`);
-        return;
-      }
-
-      const messageText = message.body.toLowerCase();
-      const hasMedia = message.hasMedia;
-
-      const matchedKeywords = this.keywords.filter((keyword) => {
-        const lowerKeyword = keyword.toLowerCase();
-        if (lowerKeyword.includes(" ")) {
-          return messageText.includes(lowerKeyword);
-        }
-        const wordBoundaryRegex = new RegExp(`\\b${lowerKeyword}\\b`, "i");
-        return wordBoundaryRegex.test(messageText);
-      });
-
-      if (matchedKeywords.length > 0 || hasMedia) {
-        console.log(`\n📱 Potential event detected in: ${groupName}`);
-        console.log(`Message: ${message.body.substring(0, 100)}...`);
-
-        let flyerPath = null;
-
-        if (hasMedia) {
-          flyerPath = await this.downloadMedia(message, groupName);
-        }
-
-        if (matchedKeywords.length > 0) {
-          console.log(
-            `🎯 Keywords matched: ${[...new Set(matchedKeywords)].join(", ")}`
-          );
-
-          await this.forwardToWhatsApp({
-            groupName,
-            message: message.body,
-            keywords: [...new Set(matchedKeywords)],
-            flyerPath,
-            originalMessage: message,
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error handling message:", error.message);
+    if (isBlacklisted) {
+      console.log(`🚫 Ignoring blacklisted group: ${groupName}`);
+      return;
     }
+
+    const messageText = message.body.toLowerCase();
+    const hasMedia = message.hasMedia;
+
+    const matchedKeywords = this.keywords.filter((keyword) => {
+      const lowerKeyword = keyword.toLowerCase();
+      if (lowerKeyword.includes(" ")) {
+        return messageText.includes(lowerKeyword);
+      }
+      const wordBoundaryRegex = new RegExp(`\\b${lowerKeyword}\\b`, "i");
+      return wordBoundaryRegex.test(messageText);
+    });
+
+    if (matchedKeywords.length > 0) {
+      console.log(`\n📱 Potential event detected in: ${groupName}`);
+      console.log(`Message: ${message.body.substring(0, 100)}...`);
+      console.log(`🎯 Keywords matched: ${[...new Set(matchedKeywords)].join(", ")}`);
+
+      // SKIP MEDIA DOWNLOAD - saves memory
+      await this.forwardToWhatsApp({
+        groupName,
+        message: message.body,
+        keywords: [...new Set(matchedKeywords)],
+        flyerPath: null,  // Don't download media
+        originalMessage: message,
+      });
+    }
+  } catch (error) {
+    console.error("Error handling message:", error.message);
   }
+}
 
   async downloadMedia(message, groupName) {
     try {
