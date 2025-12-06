@@ -4,7 +4,7 @@
   "description": "WhatsApp event monitoring bot",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node --max-old-space-size=450 bot.js"
   },
   "dependencies": {
     "whatsapp-web.js": "^1.23.0",
